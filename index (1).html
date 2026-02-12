@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's College For? — Live Word Cloud</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #faf7f2;
+            --charcoal: #2a2826;
+            --rust: #c85a3e;
+            --forest: #3e5f4f;
+            --gold: #d4a574;
+            --sage: #9db29b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #ede8df 100%);
+            color: var(--charcoal);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            color: var(--charcoal);
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        
+        .prompt {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            color: var(--rust);
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: var(--forest);
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 50px;
+            animation: fadeIn 1s ease 0.3s both;
+        }
+        
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(42, 40, 38, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 40px;
+        }
+        
+        .input-header {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--forest);
+            margin-bottom: 25px;
+        }
+        
+        .response-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 20px;
+            border: 2px solid var(--sage);
+            border-radius: 12px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: var(--cream);
+        }
+        
+        .response-input:focus {
+            outline: none;
+            border-color: var(--rust);
+            box-shadow: 0 0 0 4px rgba(200, 90, 62, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            margin-top: 20px;
+            background: var(--rust);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .submit-btn:hover {
+            background: #b04e36;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(200, 90, 62, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .stats {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid var(--cream);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .stat-label {
+            color: var(--forest);
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            color: var(--rust);
+            font-weight: 600;
+        }
+        
+        .wordcloud-section {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 10px 40px rgba(42, 40, 38, 0.08);
+            min-height: 600px;
+            position: relative;
+        }
+        
+        .wordcloud-header {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--forest);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .wordcloud {
+            position: relative;
+            width: 100%;
+            height: 550px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            align-content: center;
+            gap: 15px;
+            padding: 20px;
+        }
+        
+        .word {
+            display: inline-block;
+            padding: 8px 16px;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 600;
+            cursor: default;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 8px;
+            animation: wordAppear 0.6s ease both;
+            position: relative;
+        }
+        
+        .word:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+        
+        .word-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--charcoal);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .word:hover .word-tooltip {
+            opacity: 1;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--sage);
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state-text {
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes wordAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                position: relative;
+                top: 0;
+            }
+        }
+        
+        /* Color spectrum for word frequency */
+        .freq-1 { color: rgba(62, 95, 79, 0.4); font-size: 1rem; }
+        .freq-2 { color: rgba(62, 95, 79, 0.5); font-size: 1.2rem; }
+        .freq-3 { color: rgba(62, 95, 79, 0.65); font-size: 1.4rem; }
+        .freq-4 { color: rgba(157, 178, 155, 0.8); font-size: 1.6rem; }
+        .freq-5 { color: rgb(157, 178, 155); font-size: 1.9rem; }
+        .freq-6 { color: rgb(212, 165, 116); font-size: 2.2rem; }
+        .freq-7 { color: rgb(200, 90, 62); font-size: 2.5rem; }
+        .freq-8 { color: rgb(180, 70, 52); font-size: 2.8rem; }
+        .freq-9 { color: rgb(160, 50, 42); font-size: 3.2rem; }
+        .freq-10 { color: rgb(140, 30, 32); font-size: 3.6rem; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>The Purpose of College</h1>
+            <p class="prompt">What are you supposed to get from going to college?</p>
+            <p class="subtitle">Share your thoughts and watch the collective wisdom emerge</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="input-header">Your Response</h2>
+                <textarea 
+                    class="response-input" 
+                    placeholder="Type your thoughts here... What do you believe is the purpose of going to college?"
+                    id="responseInput"
+                ></textarea>
+                <button class="submit-btn" id="submitBtn">Submit Response</button>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Responses</span>
+                        <span class="stat-value" id="totalResponses">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Unique Words</span>
+                        <span class="stat-value" id="uniqueWords">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Most Common</span>
+                        <span class="stat-value" id="topWord">—</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wordcloud-section">
+                <h2 class="wordcloud-header">Live Word Cloud</h2>
+                <div class="wordcloud" id="wordcloud">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💭</div>
+                        <p class="empty-state-text">Submit the first response to start the cloud...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stop words to filter out
+        const STOP_WORDS = new Set([
+            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
+            'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the',
+            'to', 'was', 'will', 'with', 'you', 'your', 'i', 'me', 'my',
+            'we', 'they', 'them', 'their', 'this', 'these', 'those', 'what',
+            'which', 'who', 'when', 'where', 'why', 'how', 'if', 'or', 'because',
+            'but', 'so', 'than', 'such', 'no', 'not', 'only', 'same', 'too',
+            'very', 'can', 'just', 'should', 'now', 'also', 'get', 'got'
+        ]);
+        
+        // Word frequency map
+        let wordFrequency = {};
+        let totalResponses = 0;
+        
+        // DOM elements
+        const responseInput = document.getElementById('responseInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const wordcloudEl = document.getElementById('wordcloud');
+        const totalResponsesEl = document.getElementById('totalResponses');
+        const uniqueWordsEl = document.getElementById('uniqueWords');
+        const topWordEl = document.getElementById('topWord');
+        
+        // Process text to extract meaningful words
+        function processText(text) {
+            return text
+                .toLowerCase()
+                .replace(/[^\w\s'-]/g, ' ')
+                .split(/\s+/)
+                .filter(word => {
+                    return word.length > 2 && !STOP_WORDS.has(word);
+                })
+                .map(word => word.replace(/^'+|'+$/g, ''));
+        }
+        
+        // Calculate frequency tier (1-10)
+        function getFrequencyTier(frequency, maxFrequency) {
+            if (maxFrequency === 1) return 1;
+            const ratio = frequency / maxFrequency;
+            if (ratio === 1) return 10;
+            if (ratio >= 0.8) return 9;
+            if (ratio >= 0.6) return 8;
+            if (ratio >= 0.5) return 7;
+            if (ratio >= 0.4) return 6;
+            if (ratio >= 0.3) return 5;
+            if (ratio >= 0.2) return 4;
+            if (ratio >= 0.15) return 3;
+            if (ratio >= 0.1) return 2;
+            return 1;
+        }
+        
+        // Update word cloud visualization
+        function updateWordCloud() {
+            const words = Object.entries(wordFrequency)
+                .sort((a, b) => b[1] - a[1]);
+            
+            if (words.length === 0) {
+                wordcloudEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💭</div>
+                        <p class="empty-state-text">Submit the first response to start the cloud...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const maxFrequency = Math.max(...Object.values(wordFrequency));
+            
+            // Shuffle for visual variety while keeping frequency-based sizing
+            const shuffled = [...words].sort(() => Math.random() - 0.5);
+            
+            wordcloudEl.innerHTML = shuffled
+                .map(([word, freq]) => {
+                    const tier = getFrequencyTier(freq, maxFrequency);
+                    return `
+                        <span class="word freq-${tier}" style="animation-delay: ${Math.random() * 0.3}s">
+                            ${word}
+                            <span class="word-tooltip">${freq} mention${freq > 1 ? 's' : ''}</span>
+                        </span>
+                    `;
+                })
+                .join('');
+        }
+        
+        // Update statistics
+        function updateStats() {
+            totalResponsesEl.textContent = totalResponses;
+            uniqueWordsEl.textContent = Object.keys(wordFrequency).length;
+            
+            if (Object.keys(wordFrequency).length > 0) {
+                const topWord = Object.entries(wordFrequency)
+                    .sort((a, b) => b[1] - a[1])[0];
+                topWordEl.textContent = `${topWord[0]} (${topWord[1]}×)`;
+            } else {
+                topWordEl.textContent = '—';
+            }
+        }
+        
+        // Handle response submission
+        function submitResponse() {
+            const text = responseInput.value.trim();
+            
+            if (!text) {
+                alert('Please enter a response before submitting.');
+                return;
+            }
+            
+            const words = processText(text);
+            
+            // Update frequency counts
+            words.forEach(word => {
+                wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+            });
+            
+            totalResponses++;
+            
+            // Update UI
+            updateWordCloud();
+            updateStats();
+            
+            // Clear input
+            responseInput.value = '';
+            responseInput.focus();
+        }
+        
+        // Event listeners
+        submitBtn.addEventListener('click', submitResponse);
+        
+        responseInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                submitResponse();
+            }
+        });
+        
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
